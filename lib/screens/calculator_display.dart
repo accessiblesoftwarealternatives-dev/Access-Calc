@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:graphing_calculator/widgets/text_grid.dart';
 import '../models/calculator_buffer.dart';
 import '../models/calculator_theme.dart';
 
@@ -12,15 +13,10 @@ class CalculatorDisplay extends StatelessWidget {
     required this.buffer,
   });
 
-  static const double fontSize = 22;
-  static const double lineHeight = 1.2;
-
   @override
   Widget build(BuildContext context) {
     return Container(
-      width: double.infinity,
       margin: const EdgeInsets.all(8),
-      padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
         color: theme.displayColor,
         borderRadius: BorderRadius.circular(4),
@@ -28,117 +24,92 @@ class CalculatorDisplay extends StatelessWidget {
       ),
       child: AnimatedBuilder(
         animation: buffer,
-        builder: (context, child) {
-          return LayoutBuilder(
-            builder: (context, constraints) {
-              return Stack(
-                children: [
-                  ClipRect(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.stretch,
-                      mainAxisSize: MainAxisSize.min,
-                      children: _buildLines(constraints.maxWidth),
-                    ),
-                  ),
-                ],
-              );
-            },
+        builder: (_, __) {
+          return CustomPaint(
+            painter: _Ti84Painter(buffer: buffer),
+            size: Size.infinite,
           );
         },
       ),
     );
   }
+}
 
-  List<Widget> _buildLines(double maxWidth) {
-    final widgets = <Widget>[];
+class _Ti84Painter extends CustomPainter {
+  final CalculatorBuffer buffer;
 
-    for (int i = 0; i < buffer.visibleLines.length; i++) {
-      final line = buffer.visibleLines[i];
-      final actualRow = i + buffer.scrollOffset;
+  _Ti84Painter({required this.buffer});
 
-      final isCurrentLine = actualRow == buffer.cursorRow;
-      final isEditable = buffer.isOnEditableLine;
+  static const int columns = 26;
 
-      final textWidth = _measureTextWidth(line.text);
+  @override
+  void paint(Canvas canvas, Size size) {
+    final rowHeight = size.height / CalculatorBuffer.visibleLineCount;
 
-      widgets.add(
-        SizedBox(
-          height: fontSize * lineHeight,
-          child: Stack(
-            children: [
-              if (isCurrentLine && !isEditable)
-                Positioned(
-                  left: line.isResult ? maxWidth - textWidth : 0,
-                  width: textWidth,
-                  top: 0,
-                  bottom: 0,
-                  child: Container(color: Colors.blue.withAlpha(64)),
-                ),
+    final textStyle = TextStyle(
+      fontFamily: 'Courier',
+      fontSize: rowHeight * 0.75,
+      color: Colors.black,
+      fontWeight: FontWeight.w600,
+      height: 1,
+    );
 
-              Align(
-                alignment: line.isResult
-                    ? Alignment.centerRight
-                    : Alignment.centerLeft,
-                child: Text(
-                  line.text,
-                  style: const TextStyle(
-                    fontFamily: 'Courier',
-                    fontSize: fontSize,
-                    height: lineHeight,
-                    color: Colors.black,
-                    fontWeight: FontWeight.w500,
-                  ),
-                ),
-              ),
+    final visibleLines = buffer.visibleLines;
 
-              if (isCurrentLine && isEditable && buffer.cursorVisible)
-                Positioned(
-                  left: _cursorX(line, maxWidth),
-                  top: 0,
-                  child: Container(
-                    width: _measureTextWidth("0"),
-                    height: fontSize * lineHeight,
-                    color: Colors.black.withAlpha(128),
-                  ),
-                ),
-            ],
-          ),
-        ),
-      );
+    final startRow = visibleLines.length < CalculatorBuffer.visibleLineCount
+        ? 0
+        : CalculatorBuffer.visibleLineCount - visibleLines.length;
+
+    int row = startRow;
+
+    for (final line in visibleLines) {
+      String displayText = line.text;
 
       if (line.isResult) {
-        widgets.add(const Divider(height: 4, thickness: 1));
+        if (displayText.length > columns) {
+          displayText = displayText.substring(displayText.length - columns);
+        }
+
+        displayText = "." * (columns - displayText.length) + displayText;
+      } else {
+        if (displayText.length > columns) {
+          displayText = displayText.substring(displayText.length - columns);
+        }
+      }
+
+      TextGrid.drawRow(
+        canvas: canvas,
+        size: size,
+        row: row,
+        text: displayText,
+        style: textStyle,
+        columns: columns,
+        visibleRows: CalculatorBuffer.visibleLineCount,
+      );
+
+      row++;
+    }
+
+    if (buffer.cursorVisible && buffer.isOnEditableLine) {
+      final cursorRow = visibleLines.length < CalculatorBuffer.visibleLineCount
+          ? (buffer.cursorRow - buffer.scrollOffset)
+          : startRow + (buffer.cursorRow - buffer.scrollOffset);
+
+      if (cursorRow >= 0 && cursorRow < CalculatorBuffer.visibleLineCount) {
+        TextGrid.drawCursor(
+          canvas: canvas,
+          size: size,
+          row: cursorRow,
+          col: buffer.cursorCol.clamp(0, columns - 1),
+          columns: columns,
+          visibleRows: CalculatorBuffer.visibleLineCount,
+        );
       }
     }
-
-    return widgets;
   }
 
-  double _cursorX(CalcLine line, double maxWidth) {
-    final text = line.text;
-    final col = buffer.cursorCol;
-
-    final beforeCursor = col <= text.length ? text.substring(0, col) : text;
-
-    final textWidth = _measureTextWidth(text);
-    final cursorOffset = _measureTextWidth(beforeCursor);
-
-    if (line.isResult) {
-      return maxWidth - textWidth + cursorOffset;
-    } else {
-      return cursorOffset;
-    }
-  }
-
-  double _measureTextWidth(String text) {
-    final painter = TextPainter(
-      text: TextSpan(
-        text: text,
-        style: const TextStyle(fontFamily: 'Courier', fontSize: fontSize),
-      ),
-      textDirection: TextDirection.ltr,
-    )..layout();
-
-    return painter.width;
+  @override
+  bool shouldRepaint(covariant _Ti84Painter oldDelegate) {
+    return true;
   }
 }

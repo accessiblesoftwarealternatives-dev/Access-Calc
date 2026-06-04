@@ -217,12 +217,10 @@ Widget _buildRow(
   CalculatorTheme theme,
   void Function(String) onPressed,
 ) {
-  return Expanded(
-    child: Row(
-      children: buttons.map((data) {
-        return Expanded(child: _buildButton(data, theme, onPressed));
-      }).toList(),
-    ),
+  return Row(
+    children: buttons.map((data) {
+      return Expanded(child: _buildButton(data, theme, onPressed));
+    }).toList(),
   );
 }
 
