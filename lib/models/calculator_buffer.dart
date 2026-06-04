@@ -6,13 +6,13 @@ class CalculatorBuffer extends ChangeNotifier {
   int cursorCol = 0;
   int scrollOffset = 0;
 
-  final int visibleLineCount;
+  static const int visibleLineCount = 10;
 
   bool cursorVisible = true;
 
   bool overwriteMode = true;
 
-  CalculatorBuffer({this.visibleLineCount = 6});
+  CalculatorBuffer();
 
   void insert(String text) {
     if (!isOnEditableLine) return;
@@ -122,11 +122,13 @@ class CalculatorBuffer extends ChangeNotifier {
 
     final expression = lines[cursorRow].text;
 
-    if (expression.trim().isEmpty && lines.length >= 2) {
+    if (expression.trim().isEmpty) {
       for (int i = lines.length - 2; i >= 0; i--) {
         if (!lines[i].isResult && lines[i].text.trim().isNotEmpty) {
           final prevExpr = lines[i].text;
           final result = _evaluate(prevExpr);
+
+          lines.removeLast();
 
           lines.add(CalcLine(prevExpr));
           lines.add(CalcLine(result, isResult: true));
@@ -140,6 +142,7 @@ class CalculatorBuffer extends ChangeNotifier {
           return;
         }
       }
+      return;
     }
 
     final result = _evaluate(expression);
