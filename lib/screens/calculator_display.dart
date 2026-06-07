@@ -63,7 +63,7 @@ class _Ti84Painter extends CustomPainter {
     int row = startRow;
 
     for (final line in visibleLines) {
-      String displayText = line.text;
+      String displayText = line.displayText;
 
       if (line.isResult) {
         if (displayText.length > columns) {
@@ -100,7 +100,7 @@ class _Ti84Painter extends CustomPainter {
           canvas: canvas,
           size: size,
           row: cursorRow,
-          col: buffer.cursorCol.clamp(0, columns - 1),
+          col: buffer.cursorColumn.clamp(0, columns - 1),
           columns: columns,
           visibleRows: CalculatorBuffer.visibleLineCount,
         );

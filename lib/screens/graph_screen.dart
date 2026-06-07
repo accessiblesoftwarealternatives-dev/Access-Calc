@@ -35,30 +35,9 @@ class _GraphScreenState extends State<GraphScreen> {
     super.dispose();
   }
 
-  void onButtonPressed(String value) {
+  void onButtonPressed(ButtonAction action) {
     resetCursorTimer();
-    switch (value) {
-      case "˂":
-        buffer.moveLeft();
-        break;
-      case "˃":
-        buffer.moveRight();
-        break;
-      case "˄":
-        buffer.moveUp();
-        break;
-      case "˅":
-        buffer.moveDown();
-        break;
-      case "DEL":
-        buffer.delete();
-        break;
-      case "ENTER":
-        buffer.enter();
-        break;
-      default:
-        buffer.insert(value);
-    }
+    action.execute(buffer);
   }
 
   void resetCursorTimer() {
@@ -92,7 +71,7 @@ class _GraphScreenState extends State<GraphScreen> {
 Widget _buildContent(
   CalculatorTheme theme,
   CalculatorBuffer buffer,
-  void Function(String) onPressed,
+  void Function(ButtonAction) onPressed,
 ) {
   return Column(
     children: [
@@ -105,18 +84,21 @@ Widget _buildContent(
   );
 }
 
-Widget _buildKeypad(CalculatorTheme theme, void Function(String) onPressed) {
+Widget _buildKeypad(
+  CalculatorTheme theme,
+  void Function(ButtonAction) onPressed,
+) {
   return Padding(
     padding: const EdgeInsets.all(6),
     child: Column(
       children: [
         _buildRow(
           [
-            CalcButtonData("Y=", ButtonType.operator),
-            CalcButtonData("WINDOW", ButtonType.operator),
-            CalcButtonData("ZOOM", ButtonType.operator),
-            CalcButtonData("TRACE", ButtonType.operator),
-            CalcButtonData("GRAPH", ButtonType.operator),
+            CalcButtonData("Y=", ButtonType.operator, ButtonAction.yEquals),
+            CalcButtonData("WINDOW", ButtonType.operator, ButtonAction.window),
+            CalcButtonData("ZOOM", ButtonType.operator, ButtonAction.zoom),
+            CalcButtonData("TRACE", ButtonType.operator, ButtonAction.trace),
+            CalcButtonData("GRAPH", ButtonType.operator, ButtonAction.graph),
           ],
           theme,
           onPressed,
@@ -126,11 +108,11 @@ Widget _buildKeypad(CalculatorTheme theme, void Function(String) onPressed) {
 
         _buildRow(
           [
-            CalcButtonData("MATH", ButtonType.function),
-            CalcButtonData("APPS", ButtonType.function),
-            CalcButtonData("PRGM", ButtonType.function),
-            CalcButtonData("VARS", ButtonType.function),
-            CalcButtonData("CLEAR", ButtonType.function),
+            CalcButtonData("MATH", ButtonType.function, ButtonAction.math),
+            CalcButtonData("APPS", ButtonType.function, ButtonAction.apps),
+            CalcButtonData("PRGM", ButtonType.function, ButtonAction.prgm),
+            CalcButtonData("VARS", ButtonType.function, ButtonAction.vars),
+            CalcButtonData("CLEAR", ButtonType.function, ButtonAction.clear),
           ],
           theme,
           onPressed,
@@ -138,11 +120,15 @@ Widget _buildKeypad(CalculatorTheme theme, void Function(String) onPressed) {
 
         _buildRow(
           [
-            CalcButtonData("𝓍⁻¹", ButtonType.function),
-            CalcButtonData("SIN", ButtonType.function),
-            CalcButtonData("COS", ButtonType.function),
-            CalcButtonData("TAN", ButtonType.function),
-            CalcButtonData("^", ButtonType.function),
+            CalcButtonData(
+              "𝓍⁻¹",
+              ButtonType.function,
+              ButtonAction.reciprocal,
+            ),
+            CalcButtonData("SIN", ButtonType.function, ButtonAction.sin),
+            CalcButtonData("COS", ButtonType.function, ButtonAction.cos),
+            CalcButtonData("TAN", ButtonType.function, ButtonAction.tan),
+            CalcButtonData("^", ButtonType.function, ButtonAction.power),
           ],
           theme,
           onPressed,
@@ -150,11 +136,11 @@ Widget _buildKeypad(CalculatorTheme theme, void Function(String) onPressed) {
 
         _buildRow(
           [
-            CalcButtonData("𝓍²", ButtonType.function),
-            CalcButtonData(",", ButtonType.function),
-            CalcButtonData("(", ButtonType.function),
-            CalcButtonData(")", ButtonType.function),
-            CalcButtonData("÷", ButtonType.operator),
+            CalcButtonData("𝓍²", ButtonType.function, ButtonAction.square),
+            CalcButtonData(",", ButtonType.function, ButtonAction.comma),
+            CalcButtonData("(", ButtonType.function, ButtonAction.leftParen),
+            CalcButtonData(")", ButtonType.function, ButtonAction.rightParen),
+            CalcButtonData("÷", ButtonType.operator, ButtonAction.divide),
           ],
           theme,
           onPressed,
@@ -162,11 +148,11 @@ Widget _buildKeypad(CalculatorTheme theme, void Function(String) onPressed) {
 
         _buildRow(
           [
-            CalcButtonData("LOG", ButtonType.function),
-            CalcButtonData("7", ButtonType.number),
-            CalcButtonData("8", ButtonType.number),
-            CalcButtonData("9", ButtonType.number),
-            CalcButtonData("X", ButtonType.operator),
+            CalcButtonData("LOG", ButtonType.function, ButtonAction.log),
+            CalcButtonData("7", ButtonType.number, ButtonAction.digit7),
+            CalcButtonData("8", ButtonType.number, ButtonAction.digit8),
+            CalcButtonData("9", ButtonType.number, ButtonAction.digit9),
+            CalcButtonData("X", ButtonType.operator, ButtonAction.multiply),
           ],
           theme,
           onPressed,
@@ -174,11 +160,11 @@ Widget _buildKeypad(CalculatorTheme theme, void Function(String) onPressed) {
 
         _buildRow(
           [
-            CalcButtonData("LN", ButtonType.function),
-            CalcButtonData("4", ButtonType.number),
-            CalcButtonData("5", ButtonType.number),
-            CalcButtonData("6", ButtonType.number),
-            CalcButtonData("―", ButtonType.operator),
+            CalcButtonData("LN", ButtonType.function, ButtonAction.ln),
+            CalcButtonData("4", ButtonType.number, ButtonAction.digit4),
+            CalcButtonData("5", ButtonType.number, ButtonAction.digit5),
+            CalcButtonData("6", ButtonType.number, ButtonAction.digit6),
+            CalcButtonData("―", ButtonType.operator, ButtonAction.subtract),
           ],
           theme,
           onPressed,
@@ -186,11 +172,11 @@ Widget _buildKeypad(CalculatorTheme theme, void Function(String) onPressed) {
 
         _buildRow(
           [
-            CalcButtonData("STO>", ButtonType.function),
-            CalcButtonData("1", ButtonType.number),
-            CalcButtonData("2", ButtonType.number),
-            CalcButtonData("3", ButtonType.number),
-            CalcButtonData("+", ButtonType.operator),
+            CalcButtonData("STO>", ButtonType.function, ButtonAction.store),
+            CalcButtonData("1", ButtonType.number, ButtonAction.digit1),
+            CalcButtonData("2", ButtonType.number, ButtonAction.digit2),
+            CalcButtonData("3", ButtonType.number, ButtonAction.digit3),
+            CalcButtonData("+", ButtonType.operator, ButtonAction.add),
           ],
           theme,
           onPressed,
@@ -198,11 +184,11 @@ Widget _buildKeypad(CalculatorTheme theme, void Function(String) onPressed) {
 
         _buildRow(
           [
-            CalcButtonData("ON", ButtonType.function),
-            CalcButtonData("0", ButtonType.number),
-            CalcButtonData("·", ButtonType.number),
-            CalcButtonData("(-)", ButtonType.number),
-            CalcButtonData("ENTER", ButtonType.operator),
+            CalcButtonData("ON", ButtonType.function, ButtonAction.on),
+            CalcButtonData("0", ButtonType.number, ButtonAction.digit0),
+            CalcButtonData("·", ButtonType.number, ButtonAction.decimal),
+            CalcButtonData("(-)", ButtonType.number, ButtonAction.negative),
+            CalcButtonData("ENTER", ButtonType.operator, ButtonAction.enter),
           ],
           theme,
           onPressed,
@@ -215,7 +201,7 @@ Widget _buildKeypad(CalculatorTheme theme, void Function(String) onPressed) {
 Widget _buildRow(
   List<CalcButtonData> buttons,
   CalculatorTheme theme,
-  void Function(String) onPressed,
+  void Function(ButtonAction) onPressed,
 ) {
   return Row(
     children: buttons.map((data) {
@@ -224,7 +210,10 @@ Widget _buildRow(
   );
 }
 
-Widget _buildDPadRow(CalculatorTheme theme, void Function(String) onPressed) {
+Widget _buildDPadRow(
+  CalculatorTheme theme,
+  void Function(ButtonAction) onPressed,
+) {
   return Expanded(
     flex: 2,
     child: Row(
@@ -237,9 +226,21 @@ Widget _buildDPadRow(CalculatorTheme theme, void Function(String) onPressed) {
               Expanded(
                 child: _buildRow(
                   [
-                    CalcButtonData("2ND", ButtonType.second),
-                    CalcButtonData("MODE", ButtonType.function),
-                    CalcButtonData("DEL", ButtonType.function),
+                    CalcButtonData(
+                      "2ND",
+                      ButtonType.second,
+                      ButtonAction.second,
+                    ),
+                    CalcButtonData(
+                      "MODE",
+                      ButtonType.function,
+                      ButtonAction.mode,
+                    ),
+                    CalcButtonData(
+                      "DEL",
+                      ButtonType.function,
+                      ButtonAction.delete,
+                    ),
                   ],
                   theme,
                   onPressed,
@@ -249,9 +250,21 @@ Widget _buildDPadRow(CalculatorTheme theme, void Function(String) onPressed) {
               Expanded(
                 child: _buildRow(
                   [
-                    CalcButtonData("ALPHA", ButtonType.alpha),
-                    CalcButtonData("X,T,Ø,n", ButtonType.function),
-                    CalcButtonData("STAT", ButtonType.function),
+                    CalcButtonData(
+                      "ALPHA",
+                      ButtonType.alpha,
+                      ButtonAction.alpha,
+                    ),
+                    CalcButtonData(
+                      "X,T,Ø,n",
+                      ButtonType.function,
+                      ButtonAction.xtheta,
+                    ),
+                    CalcButtonData(
+                      "STAT",
+                      ButtonType.function,
+                      ButtonAction.stat,
+                    ),
                   ],
                   theme,
                   onPressed,
@@ -278,7 +291,7 @@ Widget _buildDPadRow(CalculatorTheme theme, void Function(String) onPressed) {
 Widget _buildButton(
   CalcButtonData data,
   CalculatorTheme theme,
-  void Function(String) onPressed,
+  void Function(ButtonAction) onPressed,
 ) {
   final style = theme.getStyle(data.type);
 
@@ -291,7 +304,7 @@ Widget _buildButton(
         padding: const EdgeInsets.all(1),
       ),
       onPressed: () {
-        onPressed(data.label);
+        onPressed(data.action);
       },
       child: FittedBox(
         fit: BoxFit.scaleDown,
@@ -301,7 +314,10 @@ Widget _buildButton(
   );
 }
 
-Widget _buildDPad(CalculatorTheme theme, void Function(String) onPressed) {
+Widget _buildDPad(
+  CalculatorTheme theme,
+  void Function(ButtonAction) onPressed,
+) {
   return LayoutBuilder(
     builder: (context, constraints) {
       final size = constraints.maxWidth;
@@ -312,19 +328,43 @@ Widget _buildDPad(CalculatorTheme theme, void Function(String) onPressed) {
         children: [
           Align(
             alignment: Alignment.topCenter,
-            child: _arrowButton("˄", theme, buttonSize, onPressed),
+            child: _arrowButton(
+              ButtonAction.up,
+              "˄",
+              theme,
+              buttonSize,
+              onPressed,
+            ),
           ),
           Align(
             alignment: Alignment.bottomCenter,
-            child: _arrowButton("˅", theme, buttonSize, onPressed),
+            child: _arrowButton(
+              ButtonAction.down,
+              "˅",
+              theme,
+              buttonSize,
+              onPressed,
+            ),
           ),
           Align(
             alignment: Alignment.centerLeft,
-            child: _arrowButton("˂", theme, buttonSize, onPressed),
+            child: _arrowButton(
+              ButtonAction.left,
+              "˂",
+              theme,
+              buttonSize,
+              onPressed,
+            ),
           ),
           Align(
             alignment: Alignment.centerRight,
-            child: _arrowButton("˃", theme, buttonSize, onPressed),
+            child: _arrowButton(
+              ButtonAction.right,
+              "˃",
+              theme,
+              buttonSize,
+              onPressed,
+            ),
           ),
         ],
       );
@@ -333,10 +373,11 @@ Widget _buildDPad(CalculatorTheme theme, void Function(String) onPressed) {
 }
 
 Widget _arrowButton(
+  ButtonAction action,
   String label,
   CalculatorTheme theme,
   double size,
-  void Function(String) onPressed,
+  void Function(ButtonAction) onPressed,
 ) {
   return SizedBox(
     width: size,
@@ -348,7 +389,7 @@ Widget _arrowButton(
         padding: EdgeInsets.zero,
       ),
       onPressed: () {
-        onPressed(label);
+        onPressed(action);
       },
       child: FittedBox(
         fit: BoxFit.scaleDown,

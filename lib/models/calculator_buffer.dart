@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:graphing_calculator/models/calc_token.dart';
 
 class CalculatorBuffer extends ChangeNotifier {
-  List<CalcLine> lines = [CalcLine('')];
+  List<CalcLine> lines = [CalcLine([])];
   int cursorRow = 0;
-  int cursorCol = 0;
+  int cursorColumn = 0;
   int scrollOffset = 0;
 
   static const int visibleLineCount = 10;
@@ -14,39 +15,75 @@ class CalculatorBuffer extends ChangeNotifier {
 
   CalculatorBuffer();
 
-  void insert(String text) {
-    if (!isOnEditableLine) return;
+  void insertToken(CalcToken token) {
+    if (!isOnEditableLine) {
+      return;
+    }
+
+    final line = lines[cursorRow];
+    final pos = getCursorPosition();
+
+    if (pos.tokenIndex < line.tokens.length &&
+        line.tokens[pos.tokenIndex] is NumberToken &&
+        pos.offset > 0 &&
+        pos.offset <
+            (line.tokens[pos.tokenIndex] as NumberToken).value.length) {
+      final number = line.tokens[pos.tokenIndex] as NumberToken;
+
+      final left = number.value.substring(0, pos.offset);
+      final right = number.value.substring(pos.offset);
+
+      line.tokens.removeAt(pos.tokenIndex);
+
+      line.tokens.insert(pos.tokenIndex, NumberToken(right));
+      line.tokens.insert(pos.tokenIndex, token);
+      line.tokens.insert(pos.tokenIndex, NumberToken(left));
+    } else {
+      line.tokens.insert(pos.tokenIndex, token);
+    }
+
+    cursorColumn += token.displayText.length;
+
+    notifyListeners();
+  }
+
+  void insertDigit(String digit) {
+    if (!isOnEditableLine) {
+      return;
+    }
 
     final line = lines[cursorRow];
 
-    if (overwriteMode && cursorCol < line.text.length) {
-      lines[cursorRow] = CalcLine(
-        line.text.substring(0, cursorCol) +
-            text +
-            line.text.substring(cursorCol + 1),
+    final pos = getCursorPosition();
+
+    if (pos.tokenIndex < line.tokens.length &&
+        line.tokens[pos.tokenIndex] is NumberToken) {
+      final number = line.tokens[pos.tokenIndex] as NumberToken;
+
+      final text = number.value;
+
+      line.tokens[pos.tokenIndex] = NumberToken(
+        text.substring(0, pos.offset) + digit + text.substring(pos.offset),
       );
     } else {
-      lines[cursorRow] = CalcLine(
-        line.text.substring(0, cursorCol) +
-            text +
-            line.text.substring(cursorCol),
-      );
+      line.tokens.insert(pos.tokenIndex, NumberToken(digit));
     }
 
-    cursorCol += text.length;
+    cursorColumn++;
+
     notifyListeners();
   }
 
   void moveLeft() {
-    if (cursorCol > 0) {
-      cursorCol--;
+    if (cursorColumn > 0) {
+      cursorColumn--;
       notifyListeners();
     }
   }
 
   void moveRight() {
-    if (cursorCol < lines[cursorRow].text.length) {
-      cursorCol++;
+    if (cursorColumn < currentLineLength) {
+      cursorColumn++;
       notifyListeners();
     }
   }
@@ -54,7 +91,7 @@ class CalculatorBuffer extends ChangeNotifier {
   void moveUp() {
     if (cursorRow > 0) {
       cursorRow--;
-      cursorCol = cursorCol.clamp(0, lines[cursorRow].text.length);
+      cursorColumn = cursorColumn.clamp(0, lines[cursorRow].displayText.length);
       _updateScroll();
       notifyListeners();
     }
@@ -63,79 +100,119 @@ class CalculatorBuffer extends ChangeNotifier {
   void moveDown() {
     if (cursorRow < lines.length - 1) {
       cursorRow++;
-      cursorCol = cursorCol.clamp(0, lines[cursorRow].text.length);
+      cursorColumn = cursorColumn.clamp(0, lines[cursorRow].displayText.length);
       _updateScroll();
       notifyListeners();
     }
   }
 
+  CursorPosition getCursorPosition() {
+    final tokens = lines[cursorRow].tokens;
+
+    int remaining = cursorColumn;
+
+    for (int i = 0; i < tokens.length; i++) {
+      final length = tokens[i].displayText.length;
+
+      if (remaining < length) {
+        return CursorPosition(i, remaining);
+      }
+
+      remaining -= length;
+    }
+
+    return CursorPosition(tokens.length, 0);
+  }
+
+  int get currentLineLength {
+    return lines[cursorRow].tokens.fold(
+      0,
+      (sum, token) => sum + token.displayText.length,
+    );
+  }
+
   void delete() {
     if (!isOnEditableLine) {
-      _deleteEntryBlock();
       return;
     }
 
     final line = lines[cursorRow];
 
-    if (cursorCol >= line.text.length) return;
+    final pos = getCursorPosition();
 
-    lines[cursorRow] = CalcLine(
-      line.text.substring(0, cursorCol) + line.text.substring(cursorCol + 1),
-    );
+    if (pos.tokenIndex >= line.tokens.length) {
+      if (cursorColumn == 0) return;
 
-    notifyListeners();
-  }
+      cursorColumn--;
 
-  void _deleteEntryBlock() {
-    if (cursorRow <= 0) return;
+      final prevPos = getCursorPosition();
 
-    int start = cursorRow;
+      if (prevPos.tokenIndex < line.tokens.length) {
+        line.tokens.removeAt(prevPos.tokenIndex);
+      }
 
-    if (lines[cursorRow].isResult) {
-      start = cursorRow - 1;
+      notifyListeners();
+      return;
     }
 
-    if (start < 0 || start + 1 >= lines.length) return;
+    final token = line.tokens[pos.tokenIndex];
 
-    lines.removeAt(start);
-    lines.removeAt(start);
+    if (token is NumberToken) {
+      final text = token.value;
 
-    cursorRow = lines.length - 1;
-    cursorCol = lines[cursorRow].text.length;
+      line.tokens[pos.tokenIndex] = NumberToken(
+        text.substring(0, pos.offset) + text.substring(pos.offset + 1),
+      );
 
-    _updateScroll();
+      if ((line.tokens[pos.tokenIndex] as NumberToken).value.isEmpty) {
+        line.tokens.removeAt(pos.tokenIndex);
+      }
+    } else {
+      line.tokens.removeAt(pos.tokenIndex);
+    }
+
     notifyListeners();
   }
 
   void enter() {
     if (!isOnEditableLine) {
-      final text = lines[cursorRow].text;
+      final sourceLine = lines[cursorRow];
+      final editableLine = lines.last;
 
-      lines.add(CalcLine(text));
+      editableLine.tokens.addAll(
+        sourceLine.tokens.map((t) {
+          if (t is NumberToken) {
+            return NumberToken(t.value);
+          }
+
+          return t;
+        }),
+      );
+
       cursorRow = lines.length - 1;
-      cursorCol = text.length;
+      cursorColumn = editableLine.displayText.length;
 
       _updateScroll();
       notifyListeners();
       return;
     }
 
-    final expression = lines[cursorRow].text;
+    final expression = lines[cursorRow].displayText;
 
     if (expression.trim().isEmpty) {
       for (int i = lines.length - 2; i >= 0; i--) {
-        if (!lines[i].isResult && lines[i].text.trim().isNotEmpty) {
-          final prevExpr = lines[i].text;
+        if (!lines[i].isResult && lines[i].displayText.trim().isNotEmpty) {
+          final prevExpr = lines[i].displayText;
           final result = _evaluate(prevExpr);
 
           lines.removeLast();
 
-          lines.add(CalcLine(prevExpr));
-          lines.add(CalcLine(result, isResult: true));
-          lines.add(CalcLine(''));
+          lines.add(CalcLine(stringToTokens(prevExpr)));
+          lines.add(CalcLine(stringToTokens(result), isResult: true));
+          lines.add(CalcLine([]));
 
           cursorRow = lines.length - 1;
-          cursorCol = 0;
+          cursorColumn = 0;
 
           _updateScroll();
           notifyListeners();
@@ -147,18 +224,24 @@ class CalculatorBuffer extends ChangeNotifier {
 
     final result = _evaluate(expression);
 
-    lines.add(CalcLine(result, isResult: true));
-    lines.add(CalcLine(''));
+    lines.add(CalcLine(stringToTokens(result), isResult: true));
+    lines.add(CalcLine([]));
 
     cursorRow = lines.length - 1;
-    cursorCol = 0;
+    cursorColumn = 0;
 
     _updateScroll();
     notifyListeners();
   }
 
+  // temp and will be changed to use tokens
   String _evaluate(String expression) {
-    return expression; // temp
+    return expression;
+  }
+
+  // temp
+  List<CalcToken> stringToTokens(String text) {
+    return [NumberToken(text)];
   }
 
   void toggleCursor() {
@@ -191,8 +274,17 @@ class CalculatorBuffer extends ChangeNotifier {
 }
 
 class CalcLine {
-  final String text;
+  final List<CalcToken> tokens;
   final bool isResult;
 
-  CalcLine(this.text, {this.isResult = false});
+  CalcLine(this.tokens, {this.isResult = false});
+
+  String get displayText => tokens.map((t) => t.displayText).join();
+}
+
+class CursorPosition {
+  final int tokenIndex;
+  final int offset;
+
+  const CursorPosition(this.tokenIndex, this.offset);
 }
