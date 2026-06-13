@@ -1,4 +1,3 @@
-import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:graphing_calculator/screens/calculator_display.dart';
 
@@ -17,38 +16,15 @@ class GraphScreen extends StatefulWidget {
 
 class _GraphScreenState extends State<GraphScreen> {
   final CalculatorBuffer buffer = CalculatorBuffer();
-  Timer? cursorTimer;
-
-  @override
-  void initState() {
-    super.initState();
-
-    cursorTimer = Timer.periodic(
-      const Duration(milliseconds: 250),
-      (_) => buffer.toggleCursor(),
-    );
-  }
 
   @override
   void dispose() {
-    cursorTimer?.cancel();
+    buffer.dispose();
     super.dispose();
   }
 
   void onButtonPressed(ButtonAction action) {
-    resetCursorTimer();
     action.execute(buffer);
-  }
-
-  void resetCursorTimer() {
-    cursorTimer?.cancel();
-
-    buffer.showCursor();
-
-    cursorTimer = Timer.periodic(
-      const Duration(milliseconds: 250),
-      (_) => buffer.toggleCursor(),
-    );
   }
 
   @override

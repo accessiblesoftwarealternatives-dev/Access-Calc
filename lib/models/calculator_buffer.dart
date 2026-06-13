@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:graphing_calculator/models/calc_token.dart';
 
@@ -9,16 +11,20 @@ class CalculatorBuffer extends ChangeNotifier {
 
   static const int visibleLineCount = 10;
 
+  Timer? _cursorTimer;
+
   bool cursorVisible = true;
 
-  bool overwriteMode = true;
-
-  CalculatorBuffer();
+  CalculatorBuffer() {
+    _startCursorTimer();
+  }
 
   void insertToken(CalcToken token) {
     if (!isOnEditableLine) {
       return;
     }
+
+    _resetCursorBlink();
 
     final line = lines[cursorRow];
     final pos = getCursorPosition();
@@ -52,6 +58,8 @@ class CalculatorBuffer extends ChangeNotifier {
       return;
     }
 
+    _resetCursorBlink();
+
     final line = lines[cursorRow];
 
     final pos = getCursorPosition();
@@ -75,6 +83,8 @@ class CalculatorBuffer extends ChangeNotifier {
   }
 
   void moveLeft() {
+    _resetCursorBlink();
+
     if (cursorColumn > 0) {
       cursorColumn--;
       notifyListeners();
@@ -82,6 +92,8 @@ class CalculatorBuffer extends ChangeNotifier {
   }
 
   void moveRight() {
+    _resetCursorBlink();
+
     if (cursorColumn < currentLineLength) {
       cursorColumn++;
       notifyListeners();
@@ -89,6 +101,8 @@ class CalculatorBuffer extends ChangeNotifier {
   }
 
   void moveUp() {
+    _resetCursorBlink();
+
     if (cursorRow > 0) {
       cursorRow--;
       cursorColumn = cursorColumn.clamp(0, lines[cursorRow].displayText.length);
@@ -98,6 +112,8 @@ class CalculatorBuffer extends ChangeNotifier {
   }
 
   void moveDown() {
+    _resetCursorBlink();
+
     if (cursorRow < lines.length - 1) {
       cursorRow++;
       cursorColumn = cursorColumn.clamp(0, lines[cursorRow].displayText.length);
@@ -135,6 +151,8 @@ class CalculatorBuffer extends ChangeNotifier {
     if (!isOnEditableLine) {
       return;
     }
+
+    _resetCursorBlink();
 
     final line = lines[cursorRow];
 
@@ -175,6 +193,8 @@ class CalculatorBuffer extends ChangeNotifier {
   }
 
   void enter() {
+    _resetCursorBlink();
+
     if (!isOnEditableLine) {
       final sourceLine = lines[cursorRow];
       final editableLine = lines.last;
@@ -244,16 +264,6 @@ class CalculatorBuffer extends ChangeNotifier {
     return [NumberToken(text)];
   }
 
-  void toggleCursor() {
-    cursorVisible = !cursorVisible;
-    notifyListeners();
-  }
-
-  void showCursor() {
-    cursorVisible = true;
-    notifyListeners();
-  }
-
   void _updateScroll() {
     if (cursorRow >= scrollOffset + visibleLineCount) {
       scrollOffset = cursorRow - visibleLineCount + 1;
@@ -270,6 +280,27 @@ class CalculatorBuffer extends ChangeNotifier {
 
   bool get isOnEditableLine {
     return cursorRow == lines.length - 1;
+  }
+
+  void _startCursorTimer() {
+    _cursorTimer?.cancel();
+
+    _cursorTimer = Timer.periodic(const Duration(milliseconds: 250), (_) {
+      cursorVisible = !cursorVisible;
+      notifyListeners();
+    });
+  }
+
+  void _resetCursorBlink() {
+    cursorVisible = true;
+
+    _startCursorTimer();
+  }
+
+  @override
+  void dispose() {
+    _cursorTimer?.cancel();
+    super.dispose();
   }
 }
 
