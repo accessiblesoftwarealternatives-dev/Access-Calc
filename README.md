@@ -1,15 +1,34 @@
-# Access- Calc
+# Access-Calc
 
-An Open-source Calculator with a familiar interface based on the TI - 84 Plus CE while remaining free to use without ads.
-## Getting Started
+Access-Calc is an open-source graphing calculator built with Flutter with a familiar interface based on the TI-84 Plus CE while remaining free to use without ads. Compatable with iOS, Android, and web, and desktop.
 
-This project is a starting point for a Flutter application.
+## Requirements
 
-A few resources to get you started if this is your first Flutter project:
+- Any Operating System (ie. MacOS X, Linux, Windows)
+- Any IDE with Flutter SDK installed (ie. IntelliJ, Android Studio, VSCode etc)
+- A little knowledge of Dart and Flutter
 
-- [Lab: Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Cookbook: Useful Flutter samples](https://docs.flutter.dev/cookbook)
+## Installation
 
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+### 1. Clone the Repository
+
+```bash
+git clone https://github.com/accessiblesoftwarealternatives-dev/Access-Calc
+cd Access Calc
+```
+### 2. Install Dependencies:
+```bash
+flutter pub get
+```
+### 3. Run the Project
+```bash
+flutter run
+```
+
+
+## Who are we?
+Accessible Software Alternatives is a non-profit dedicated to expand access to software online by creating apps and tools that run on any device, while also ensuring that common nuisances, including ads and paywalls, are not included in order to make apps that anyone can navigate safely.
+
+## License
+Access-calc is distributed under the terms of the GPL-3.0 license
+
