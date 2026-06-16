@@ -1,7 +1,6 @@
-# graphing_calculator
+# Access- Calc
 
-A new Flutter project.
-
+An Open-source Calculator with a familiar interface based on the TI - 84 Plus CE while remaining free to use without ads.
 ## Getting Started
 
 This project is a starting point for a Flutter application.
