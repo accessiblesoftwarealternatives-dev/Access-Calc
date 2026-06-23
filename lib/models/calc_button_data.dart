@@ -1,3 +1,4 @@
+import 'package:graphing_calculator/models/button_mode.dart';
 import 'package:graphing_calculator/models/calc_token.dart';
 import 'package:graphing_calculator/models/calculator_buffer.dart';
 
@@ -170,6 +171,21 @@ extension ButtonActionExecutor on ButtonAction {
         buffer.insertToken(RightParenToken());
         break;
 
+      case ButtonAction.second:
+        if (buffer.mode == ButtonMode.second) {
+          buffer.setMode(ButtonMode.normal);
+        } else {
+          buffer.setMode(ButtonMode.second);
+        }
+        break;
+      case ButtonAction.alpha:
+        if (buffer.mode == ButtonMode.alpha) {
+          buffer.setMode(ButtonMode.normal);
+        } else {
+          buffer.setMode(ButtonMode.alpha);
+        }
+        break;
+
       case ButtonAction.comma:
       case ButtonAction.decimal:
       case ButtonAction.negative:
@@ -186,9 +202,7 @@ extension ButtonActionExecutor on ButtonAction {
       case ButtonAction.reciprocal:
       case ButtonAction.square:
       case ButtonAction.store:
-      case ButtonAction.second:
       case ButtonAction.mode:
-      case ButtonAction.alpha:
       case ButtonAction.xtheta:
       case ButtonAction.stat:
       case ButtonAction.on:

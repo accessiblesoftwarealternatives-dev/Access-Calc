@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:graphing_calculator/painters/calculator_painter.dart';
+import 'package:graphing_calculator/screens/calculator_header.dart';
 import '../models/calculator_buffer.dart';
 import '../models/calculator_theme.dart';
 
@@ -25,9 +26,17 @@ class CalculatorDisplay extends StatelessWidget {
       child: AnimatedBuilder(
         animation: buffer,
         builder: (_, __) {
-          return CustomPaint(
-            painter: CalculatorPainter(buffer: buffer),
-            size: Size.infinite,
+          return Column(
+            children: [
+              CalculatorHeader(mode: buffer.mode),
+
+              Expanded(
+                child: CustomPaint(
+                  painter: CalculatorPainter(buffer: buffer),
+                  size: Size.infinite,
+                ),
+              ),
+            ],
           );
         },
       ),

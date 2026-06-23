@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:graphing_calculator/models/button_mode.dart';
 
 class TextGrid {
   static final Map<String, TextPainter> _cache = {};
@@ -37,14 +38,52 @@ class TextGrid {
     required int col,
     required int columns,
     required int visibleRows,
+    required ButtonMode mode,
   }) {
     final cellWidth = size.width / columns;
     final cellHeight = size.height / visibleRows;
-
-    canvas.drawRect(
-      Rect.fromLTWH(col * cellWidth, row * cellHeight, cellWidth, cellHeight),
-      Paint()..color = Colors.black.withValues(alpha: 0.45),
+    final rect = Rect.fromLTWH(
+      col * cellWidth,
+      row * cellHeight,
+      cellWidth,
+      cellHeight,
     );
+
+    canvas.drawRect(rect, Paint()..color = Colors.black);
+
+    String? symbol;
+
+    switch (mode) {
+      case ButtonMode.normal:
+        symbol = null;
+        break;
+
+      case ButtonMode.second:
+        symbol = "↑";
+        break;
+
+      case ButtonMode.alpha:
+        symbol = "A";
+        break;
+    }
+
+    if (symbol != null) {
+      final tp = TextPainter(
+        text: TextSpan(
+          text: symbol,
+          style: TextStyle(
+            color: const Color(0xFFD8E0C8),
+            fontWeight: FontWeight.bold,
+            fontSize: cellHeight * 0.9,
+          ),
+        ),
+        textDirection: TextDirection.ltr,
+      );
+
+      tp.layout();
+
+      tp.paint(canvas, Offset(rect.center.dx - tp.width / 2, rect.top - 1));
+    }
   }
 
   static void _drawCharacter({

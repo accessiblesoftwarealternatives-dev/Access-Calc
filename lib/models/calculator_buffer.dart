@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:graphing_calculator/models/button_mode.dart';
 import 'package:graphing_calculator/models/calc_token.dart';
 
 class CalculatorBuffer extends ChangeNotifier {
@@ -15,8 +16,15 @@ class CalculatorBuffer extends ChangeNotifier {
 
   bool cursorVisible = true;
 
+  ButtonMode mode = ButtonMode.normal;
+
   CalculatorBuffer() {
     _startCursorTimer();
+  }
+
+  void setMode(ButtonMode newMode) {
+    mode = newMode;
+    notifyListeners();
   }
 
   void insertToken(CalcToken token) {

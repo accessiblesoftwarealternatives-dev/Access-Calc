@@ -70,6 +70,7 @@ class CalculatorPainter extends CustomPainter {
           col: buffer.cursorColumn.clamp(0, columns - 1),
           columns: columns,
           visibleRows: CalculatorBuffer.visibleLineCount,
+          mode: buffer.mode,
         );
       }
     }
