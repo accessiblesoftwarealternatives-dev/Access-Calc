@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:graphing_calculator/models/button_mode.dart';
 import 'package:graphing_calculator/models/calc_token.dart';
+import 'package:graphing_calculator/models/expression_parser.dart';
 
 class CalculatorBuffer extends ChangeNotifier {
   List<CalcLine> lines = [CalcLine([])];
@@ -271,9 +272,18 @@ class CalculatorBuffer extends ChangeNotifier {
     notifyListeners();
   }
 
-  // temp and will be changed to use tokens
-  String _evaluate(String expression) {
-    return expression;
+  String _evaluate(String _) {
+    final tokens = lines[cursorRow].tokens;
+    try {
+      final parser = ExpressionParser(tokens);
+      final result = parser.parseExpression();
+      if (result == result.truncateToDouble()) {
+        return result.toInt().toString();
+      }
+      return result.toStringAsFixed(10).replaceAll(RegExp(r'0+$'), '');
+    } catch (e) {
+      return 'ERR';
+    }
   }
 
   // temp
