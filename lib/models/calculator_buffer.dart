@@ -72,7 +72,16 @@ class CalculatorBuffer extends ChangeNotifier {
 
     final pos = getCursorPosition();
 
-    if (pos.tokenIndex < line.tokens.length &&
+    final prevIndex = pos.tokenIndex - 1;
+    final isAfterNumber =
+        pos.offset == 0 &&
+        prevIndex >= 0 &&
+        line.tokens[prevIndex] is NumberToken;
+
+    if (isAfterNumber) {
+      final number = line.tokens[prevIndex] as NumberToken;
+      line.tokens[prevIndex] = NumberToken(number.value + digit);
+    } else if (pos.tokenIndex < line.tokens.length &&
         line.tokens[pos.tokenIndex] is NumberToken) {
       final number = line.tokens[pos.tokenIndex] as NumberToken;
 
