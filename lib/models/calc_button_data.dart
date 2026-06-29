@@ -132,6 +132,13 @@ extension ButtonActionExecutor on ButtonAction {
         buffer.insertDigit("9");
         break;
 
+      case ButtonAction.decimal:
+        buffer.insertDigit(".");
+        break;
+      case ButtonAction.negative:
+        buffer.insertDigit("-");
+        break;
+
       case ButtonAction.add:
         buffer.insertToken(OperatorToken(OperatorType.add));
         break;
@@ -187,8 +194,6 @@ extension ButtonActionExecutor on ButtonAction {
         break;
 
       case ButtonAction.comma:
-      case ButtonAction.decimal:
-      case ButtonAction.negative:
       case ButtonAction.yEquals:
       case ButtonAction.window:
       case ButtonAction.zoom:
