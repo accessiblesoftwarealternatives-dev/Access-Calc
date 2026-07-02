@@ -12,17 +12,18 @@ class TextGrid {
     required TextStyle style,
     required int columns,
     required int visibleRows,
+    int startCol = 0,
   }) {
     final cellWidth = size.width / columns;
     final cellHeight = size.height / visibleRows;
 
     final chars = text.characters.toList();
 
-    for (int col = 0; col < chars.length && col < columns; col++) {
+    for (int col = 0; col < chars.length && startCol + col < columns; col++) {
       _drawCharacter(
         canvas: canvas,
         char: chars[col],
-        col: col,
+        col: startCol + col,
         row: row,
         cellWidth: cellWidth,
         cellHeight: cellHeight,
@@ -95,7 +96,8 @@ class TextGrid {
     required double cellHeight,
     required TextStyle style,
   }) {
-    final key = '${style.fontFamily}_${style.fontSize}_$char';
+    final key =
+        '${style.fontFamily}_${style.fontSize}_${style.color?.value}_$char';
 
     final painter =
         _cache[key] ??
@@ -105,9 +107,31 @@ class TextGrid {
         )..layout());
 
     final x = col * cellWidth + 1;
-
     final y = row * cellHeight + (cellHeight - painter.height) / 2;
 
     painter.paint(canvas, Offset(x, y));
+  }
+
+  static void drawHighlight({
+    required Canvas canvas,
+    required Size size,
+    required int row,
+    required int startCol,
+    required int width,
+    required int columns,
+    required int visibleRows,
+    Color color = Colors.black,
+  }) {
+    final cellWidth = size.width / columns;
+    final cellHeight = size.height / visibleRows;
+
+    final rect = Rect.fromLTWH(
+      startCol * cellWidth,
+      row * cellHeight,
+      cellWidth * width,
+      cellHeight,
+    );
+
+    canvas.drawRect(rect, Paint()..color = color);
   }
 }

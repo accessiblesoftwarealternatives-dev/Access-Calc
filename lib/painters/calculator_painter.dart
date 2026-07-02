@@ -31,17 +31,51 @@ class CalculatorPainter extends CustomPainter {
 
     for (final line in visibleLines) {
       String displayText = line.displayText;
+      int contentStart = 0;
+      int contentWidth;
+      String dots = '';
 
       if (line.isResult) {
         if (displayText.length > columns) {
           displayText = displayText.substring(displayText.length - columns);
         }
-
-        displayText = "." * (columns - displayText.length) + displayText;
+        contentWidth = displayText.length;
+        contentStart = columns - contentWidth;
+        dots = "." * contentStart;
       } else {
         if (displayText.length > columns) {
           displayText = displayText.substring(displayText.length - columns);
         }
+        contentWidth = displayText.length;
+        contentStart = 0;
+      }
+
+      final actualRow = buffer.scrollOffset + (row - startRow);
+      final isHighlighted =
+          !buffer.isOnEditableLine && actualRow == buffer.cursorRow;
+
+      if (isHighlighted) {
+        TextGrid.drawHighlight(
+          canvas: canvas,
+          size: size,
+          row: row,
+          startCol: contentStart,
+          width: contentWidth,
+          columns: columns,
+          visibleRows: CalculatorBuffer.visibleLineCount,
+        );
+      }
+
+      if (dots.isNotEmpty) {
+        TextGrid.drawRow(
+          canvas: canvas,
+          size: size,
+          row: row,
+          text: dots,
+          style: textStyle,
+          columns: columns,
+          visibleRows: CalculatorBuffer.visibleLineCount,
+        );
       }
 
       TextGrid.drawRow(
@@ -49,9 +83,12 @@ class CalculatorPainter extends CustomPainter {
         size: size,
         row: row,
         text: displayText,
-        style: textStyle,
+        style: isHighlighted
+            ? textStyle.copyWith(color: const Color(0xFFD8E0C8))
+            : textStyle,
         columns: columns,
         visibleRows: CalculatorBuffer.visibleLineCount,
+        startCol: contentStart,
       );
 
       row++;

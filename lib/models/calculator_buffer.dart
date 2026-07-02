@@ -103,19 +103,45 @@ class CalculatorBuffer extends ChangeNotifier {
   void moveLeft() {
     _resetCursorBlink();
 
-    if (cursorColumn > 0) {
+    if (!isOnEditableLine) return;
+
+    if (cursorColumn <= 0) return;
+
+    final line = lines[cursorRow];
+    final pos = getCursorPosition(column: cursorColumn - 1);
+    final token = pos.tokenIndex < line.tokens.length
+        ? line.tokens[pos.tokenIndex]
+        : null;
+
+    if (_isAtomicBlock(token)) {
+      cursorColumn = cursorColumn - 1 - pos.offset;
+    } else {
       cursorColumn--;
-      notifyListeners();
     }
+
+    notifyListeners();
   }
 
   void moveRight() {
     _resetCursorBlink();
 
-    if (cursorColumn < currentLineLength) {
+    if (!isOnEditableLine) return;
+
+    if (cursorColumn >= currentLineLength) return;
+
+    final line = lines[cursorRow];
+    final pos = getCursorPosition();
+    final token = pos.tokenIndex < line.tokens.length
+        ? line.tokens[pos.tokenIndex]
+        : null;
+
+    if (_isAtomicBlock(token)) {
+      cursorColumn = (cursorColumn - pos.offset) + token!.displayText.length;
+    } else {
       cursorColumn++;
-      notifyListeners();
     }
+
+    notifyListeners();
   }
 
   void moveUp() {
@@ -123,7 +149,12 @@ class CalculatorBuffer extends ChangeNotifier {
 
     if (cursorRow > 0) {
       cursorRow--;
-      cursorColumn = cursorColumn.clamp(0, lines[cursorRow].displayText.length);
+      if (isOnEditableLine) {
+        cursorColumn = cursorColumn.clamp(
+          0,
+          lines[cursorRow].displayText.length,
+        );
+      }
       _updateScroll();
       notifyListeners();
     }
@@ -134,16 +165,21 @@ class CalculatorBuffer extends ChangeNotifier {
 
     if (cursorRow < lines.length - 1) {
       cursorRow++;
-      cursorColumn = cursorColumn.clamp(0, lines[cursorRow].displayText.length);
+      if (isOnEditableLine) {
+        cursorColumn = cursorColumn.clamp(
+          0,
+          lines[cursorRow].displayText.length,
+        );
+      }
       _updateScroll();
       notifyListeners();
     }
   }
 
-  CursorPosition getCursorPosition() {
+  CursorPosition getCursorPosition({int? column}) {
     final tokens = lines[cursorRow].tokens;
 
-    int remaining = cursorColumn;
+    int remaining = column ?? cursorColumn;
 
     for (int i = 0; i < tokens.length; i++) {
       final length = tokens[i].displayText.length;
@@ -156,6 +192,12 @@ class CalculatorBuffer extends ChangeNotifier {
     }
 
     return CursorPosition(tokens.length, 0);
+  }
+
+  bool _isAtomicBlock(CalcToken? token) {
+    return token != null &&
+        token is! NumberToken &&
+        token.displayText.length > 1;
   }
 
   int get currentLineLength {
