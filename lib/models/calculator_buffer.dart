@@ -177,17 +177,6 @@ class CalculatorBuffer extends ChangeNotifier {
     final pos = getCursorPosition();
 
     if (pos.tokenIndex >= line.tokens.length) {
-      if (cursorColumn == 0) return;
-
-      cursorColumn--;
-
-      final prevPos = getCursorPosition();
-
-      if (prevPos.tokenIndex < line.tokens.length) {
-        line.tokens.removeAt(prevPos.tokenIndex);
-      }
-
-      notifyListeners();
       return;
     }
 
