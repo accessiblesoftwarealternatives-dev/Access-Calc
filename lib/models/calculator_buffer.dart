@@ -272,7 +272,7 @@ class CalculatorBuffer extends ChangeNotifier {
       for (int i = lines.length - 2; i >= 0; i--) {
         if (!lines[i].isResult && lines[i].displayText.trim().isNotEmpty) {
           final prevExpr = lines[i].displayText;
-          final result = _evaluate(prevExpr);
+          final result = _evaluate(lines[i].tokens);
 
           lines.removeLast();
 
@@ -291,7 +291,7 @@ class CalculatorBuffer extends ChangeNotifier {
       return;
     }
 
-    final result = _evaluate(expression);
+    final result = _evaluate(lines[cursorRow].tokens);
 
     lines.add(CalcLine(stringToTokens(result), isResult: true));
     lines.add(CalcLine([]));
@@ -303,8 +303,7 @@ class CalculatorBuffer extends ChangeNotifier {
     notifyListeners();
   }
 
-  String _evaluate(String _) {
-    final tokens = lines[cursorRow].tokens;
+  String _evaluate(List<CalcToken> tokens) {
     try {
       final parser = ExpressionParser(tokens);
       final result = parser.parseExpression();
