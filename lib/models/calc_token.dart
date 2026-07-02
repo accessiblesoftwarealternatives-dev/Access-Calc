@@ -46,15 +46,15 @@ class FunctionToken extends CalcToken {
   String get displayText {
     switch (type) {
       case FunctionType.sin:
-        return 'sin';
+        return 'sin(';
       case FunctionType.cos:
-        return 'cos';
+        return 'cos(';
       case FunctionType.tan:
-        return 'tan';
+        return 'tan(';
       case FunctionType.log:
-        return 'log';
+        return 'log(';
       case FunctionType.ln:
-        return 'ln';
+        return 'ln(';
     }
   }
 }
