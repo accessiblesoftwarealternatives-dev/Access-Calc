@@ -271,12 +271,11 @@ class CalculatorBuffer extends ChangeNotifier {
     if (expression.trim().isEmpty) {
       for (int i = lines.length - 2; i >= 0; i--) {
         if (!lines[i].isResult && lines[i].displayText.trim().isNotEmpty) {
-          final prevExpr = lines[i].displayText;
           final result = _evaluate(lines[i].tokens);
 
           lines.removeLast();
 
-          lines.add(CalcLine(stringToTokens(prevExpr)));
+          lines.add(CalcLine(List<CalcToken>.from(lines[i].tokens)));
           lines.add(CalcLine(stringToTokens(result), isResult: true));
           lines.add(CalcLine([]));
 
