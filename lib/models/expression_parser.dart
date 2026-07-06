@@ -1,5 +1,6 @@
 import 'dart:math' as math;
 
+import 'package:graphing_calculator/models/calc_error.dart';
 import 'package:graphing_calculator/models/calc_token.dart';
 
 class ExpressionParser {
@@ -38,7 +39,7 @@ class ExpressionParser {
       final right = _parsePower();
       if (op.type == OperatorType.divide) {
         if (right == 0) {
-          throw Exception('Division by zero'); // add actual error stuff later
+          throw DivideByZeroError(_pos);
         }
         result = result / right;
       } else {
@@ -81,11 +82,19 @@ class ExpressionParser {
       _pos++;
       if (_current is LeftParenToken) _pos++;
       final arg = parseExpression();
+
+      final errorIndex = _current is RightParenToken ? _pos : tokens.length;
       if (_current is RightParenToken) _pos++;
+
+      if ((token.type == FunctionType.log || token.type == FunctionType.ln) &&
+          arg <= 0) {
+        throw NonrealAnswersError(errorIndex);
+      }
+
       return _applyFunction(token.type, arg);
     }
 
-    throw Exception('Unexpected token: ${token?.displayText}');
+    throw SyntaxError(_pos);
   }
 
   double _applyFunction(FunctionType type, double arg) {

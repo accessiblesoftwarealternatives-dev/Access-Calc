@@ -80,6 +80,21 @@ class CalcButtonData {
 
 extension ButtonActionExecutor on ButtonAction {
   void execute(CalculatorBuffer buffer) {
+    if (buffer.error != null) {
+      switch (this) {
+        // will replace this with an actual menu navigation when the rest of the menu is implemented
+        case ButtonAction.digit1:
+          buffer.quitError();
+          break;
+        case ButtonAction.digit2:
+          buffer.gotoError();
+          break;
+        default:
+          break;
+      }
+      return;
+    }
+
     switch (this) {
       case ButtonAction.left:
         buffer.moveLeft();

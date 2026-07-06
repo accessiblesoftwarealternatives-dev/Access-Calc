@@ -97,7 +97,7 @@ class TextGrid {
     required TextStyle style,
   }) {
     final key =
-        '${style.fontFamily}_${style.fontSize}_${style.color?.value}_$char';
+        '${style.fontFamily}_${style.fontSize}_${style.color?.toARGB32()}_$char';
 
     final painter =
         _cache[key] ??

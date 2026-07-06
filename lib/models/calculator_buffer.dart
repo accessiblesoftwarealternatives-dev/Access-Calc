@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:graphing_calculator/models/button_mode.dart';
+import 'package:graphing_calculator/models/calc_error.dart';
 import 'package:graphing_calculator/models/calc_token.dart';
 import 'package:graphing_calculator/models/expression_parser.dart';
 
@@ -18,6 +19,9 @@ class CalculatorBuffer extends ChangeNotifier {
   bool cursorVisible = true;
 
   ButtonMode mode = ButtonMode.normal;
+
+  CalcError? error;
+  List<CalcToken>? _erroredTokens;
 
   CalculatorBuffer() {
     _startCursorTimer();
@@ -249,13 +253,9 @@ class CalculatorBuffer extends ChangeNotifier {
       final editableLine = lines.last;
 
       editableLine.tokens.addAll(
-        sourceLine.tokens.map((t) {
-          if (t is NumberToken) {
-            return NumberToken(t.value);
-          }
-
-          return t;
-        }),
+        sourceLine.tokens.map(
+          (t) => t is NumberToken ? NumberToken(t.value) : t,
+        ),
       );
 
       cursorRow = lines.length - 1;
@@ -271,13 +271,11 @@ class CalculatorBuffer extends ChangeNotifier {
     if (expression.trim().isEmpty) {
       for (int i = lines.length - 2; i >= 0; i--) {
         if (!lines[i].isResult && lines[i].displayText.trim().isNotEmpty) {
-          final result = _evaluate(lines[i].tokens);
+          final tokens = lines[i].tokens;
 
           lines.removeLast();
-
-          lines.add(CalcLine(List<CalcToken>.from(lines[i].tokens)));
-          lines.add(CalcLine(stringToTokens(result), isResult: true));
-          lines.add(CalcLine([]));
+          lines.add(CalcLine(List<CalcToken>.from(tokens)));
+          _pushResultOrError(tokens);
 
           cursorRow = lines.length - 1;
           cursorColumn = 0;
@@ -290,10 +288,7 @@ class CalculatorBuffer extends ChangeNotifier {
       return;
     }
 
-    final result = _evaluate(lines[cursorRow].tokens);
-
-    lines.add(CalcLine(stringToTokens(result), isResult: true));
-    lines.add(CalcLine([]));
+    _pushResultOrError(lines[cursorRow].tokens);
 
     cursorRow = lines.length - 1;
     cursorColumn = 0;
@@ -302,17 +297,58 @@ class CalculatorBuffer extends ChangeNotifier {
     notifyListeners();
   }
 
-  String _evaluate(List<CalcToken> tokens) {
+  void _pushResultOrError(List<CalcToken> tokens) {
     try {
-      final parser = ExpressionParser(tokens);
-      final result = parser.parseExpression();
-      if (result == result.truncateToDouble()) {
-        return result.toInt().toString();
-      }
-      return result.toStringAsFixed(10).replaceAll(RegExp(r'0+$'), '');
+      final result = _evaluate(tokens);
+      lines.add(CalcLine(stringToTokens(result), isResult: true));
+      lines.add(CalcLine([]));
     } catch (e) {
-      return 'ERR';
+      final calcError = e is CalcError ? e : SyntaxError(tokens.length);
+      _erroredTokens = List<CalcToken>.from(tokens);
+      lines.add(CalcLine(stringToTokens('Error'), isResult: true));
+      lines.add(CalcLine([]));
+      error = calcError;
     }
+  }
+
+  String _evaluate(List<CalcToken> tokens) {
+    final parser = ExpressionParser(tokens);
+    final result = parser.parseExpression();
+    if (result == result.truncateToDouble()) {
+      return result.toInt().toString();
+    }
+    return result.toStringAsFixed(10).replaceAll(RegExp(r'0+$'), '');
+  }
+
+  void quitError() {
+    if (error == null) return;
+    error = null;
+    _erroredTokens = null;
+    notifyListeners();
+  }
+
+  void gotoError() {
+    if (error == null) return;
+
+    final tokens = _erroredTokens;
+    final tokenIndex = error!.tokenIndex;
+    error = null;
+    _erroredTokens = null;
+
+    if (tokens != null) {
+      final editableLine = lines.last;
+      editableLine.tokens.addAll(
+        tokens.map((t) => t is NumberToken ? NumberToken(t.value) : t),
+      );
+
+      int column = 0;
+      for (int i = 0; i < tokens.length && i < tokenIndex; i++) {
+        column += tokens[i].displayText.length;
+      }
+      cursorColumn = column;
+    }
+
+    notifyListeners();
   }
 
   // temp
