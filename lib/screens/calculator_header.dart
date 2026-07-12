@@ -49,6 +49,7 @@ class CalculatorHeader extends StatelessWidget {
       case ButtonMode.second:
         return "↑";
       case ButtonMode.alpha:
+      case ButtonMode.alphaLock:
         return "A";
     }
   }

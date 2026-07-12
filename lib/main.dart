@@ -13,7 +13,7 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       title: 'Graphing Calculator',
       theme: ThemeData.dark(),
-      home: const GraphScreen(),
+      home: const CalculatorKeypad(),
     );
   }
 }

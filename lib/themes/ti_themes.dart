@@ -16,11 +16,11 @@ const ti84Theme = CalculatorTheme(
     textColor: Color(0xFFFCFCFC),
   ),
   secondStyle: ButtonStyleData(
-    backgroundColor: Color(0xFF4BBBC5),
+    backgroundColor: Color(0xFF005EA8),
     textColor: Colors.white,
   ),
   alphaStyle: ButtonStyleData(
-    backgroundColor: Color(0xFF8CC92C),
+    backgroundColor: Color(0xFF7DBA2A),
     textColor: Colors.white,
   ),
   backgroundColor: Color(0xFF373737),

@@ -64,6 +64,7 @@ class TextGrid {
         break;
 
       case ButtonMode.alpha:
+      case ButtonMode.alphaLock:
         symbol = "A";
         break;
     }
