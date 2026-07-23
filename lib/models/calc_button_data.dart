@@ -225,6 +225,9 @@ extension ButtonActionExecutor on ButtonAction {
         buffer.moveDown();
         break;
 
+      case ButtonAction.clear:
+        buffer.clear();
+        break;
       case ButtonAction.delete:
         buffer.delete();
         break;
@@ -319,7 +322,6 @@ extension ButtonActionExecutor on ButtonAction {
       case ButtonAction.apps:
       case ButtonAction.prgm:
       case ButtonAction.vars:
-      case ButtonAction.clear:
       case ButtonAction.reciprocal:
       case ButtonAction.square:
       case ButtonAction.squareRoot:

@@ -211,6 +211,57 @@ class CalculatorBuffer extends ChangeNotifier {
     );
   }
 
+  void clear() {
+    _resetCursorBlink();
+
+    if (error != null) {
+      error = null;
+      _erroredTokens = null;
+    }
+
+    if (!isOnEditableLine) {
+      _clearHistoryEntry();
+      notifyListeners();
+      return;
+    }
+
+    final line = lines[cursorRow];
+
+    if (line.tokens.isNotEmpty) {
+      line.tokens.clear();
+      cursorColumn = 0;
+    } else {
+      scrollOffset = lines.length;
+    }
+
+    notifyListeners();
+  }
+
+  void _clearHistoryEntry() {
+    int inputIndex;
+    int resultIndex;
+
+    if (lines[cursorRow].isResult) {
+      resultIndex = cursorRow;
+      inputIndex = cursorRow - 1;
+    } else {
+      inputIndex = cursorRow;
+      resultIndex = cursorRow + 1;
+    }
+
+    if (resultIndex < lines.length && lines[resultIndex].isResult) {
+      lines.removeAt(resultIndex);
+    }
+    if (inputIndex >= 0 && inputIndex < lines.length) {
+      lines.removeAt(inputIndex);
+    }
+
+    cursorRow = inputIndex.clamp(0, lines.length - 1);
+    cursorColumn = 0;
+
+    _updateScroll();
+  }
+
   void delete() {
     if (!isOnEditableLine) {
       return;
